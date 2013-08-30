@@ -1,5 +1,10 @@
 Jinja2==2.7.1
 MarkupSafe==0.18
+MySQL-python==1.2.4
 Pygments==1.6
 Sphinx==1.2b1
 docutils==0.11
+py==1.4.15
+tox==1.6.0
+virtualenv==1.10.1
+wsgiref==0.1.2
