@@ -60,7 +60,7 @@ class MysqlStatsd():
 
 
     def signal_handler(self, signal, frame):
-    	""" Handle signals """
+        """ Handle signals """
         print("Caught CTRL+C / SIGKILL")
         if not self.quitting:
             self.quitting = True
