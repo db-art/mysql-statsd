@@ -17,7 +17,6 @@ class MysqlStatsd():
     stop_threads = False
     threads = []
     queue = None
-    l = None
     quitting = False
     quit = False
     opt = None
@@ -58,10 +57,10 @@ class MysqlStatsd():
         if self.quit:
             # We got here by a quit signal, not by queue depletion
             sys.exit(0)
-        l.info("Waiting for threads")
 
 
     def signal_handler(self, signal, frame):
+    	""" Handle signals """
         print("Caught CTRL+C / SIGKILL")
         if not self.quitting:
             self.quitting = True
