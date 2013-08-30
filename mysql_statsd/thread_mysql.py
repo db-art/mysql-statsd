@@ -44,9 +44,7 @@ class ThreadMySQL(ThreadBase):
 
     def _run(self):
         if not self.connection.open:
-                self.reconnect_attempt += 1
-                print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
-                self.setup_connection()
+            self.reconnect()
 
         cursor = self.connection.cursor()
         cursor.execute(self.data_query)
@@ -56,6 +54,14 @@ class ThreadMySQL(ThreadBase):
             self.queue.put((key.lower(), value, 'c'))
 
         time.sleep(self.query_interval)
+
+    def reconnect(self):
+        if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
+            raise ThreadMySQLMaxReconnectException
+
+        self.reconnect_attempt += 1
+        print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
+        self.setup_connection()
         
 
     def run(self):
@@ -66,14 +72,8 @@ class ThreadMySQL(ThreadBase):
             self.setup_connection()
 
         while self.run:
-            if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
-                raise ThreadMySQLMaxReconnectException
-
             if not self.connection.open:
-                self.reconnect_attempt += 1
-                print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
-                self.setup_connection()
-                continue
+                self.reconnect()
 
             self._run()
 
