@@ -59,3 +59,4 @@ if __name__ == '__main__':
     threads = [ThreadGenerateGarbage(q), ThreadStatsd(q)]
     tm = ThreadManager(threads=threads)
     tm.run()
+
