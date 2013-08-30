@@ -8,17 +8,13 @@ import sys
 import threading
 import time
 
+from thread_manager import ThreadManager
 from thread_mysql import ThreadMySQL
 from thread_statsd import ThreadStatsd
 
 
 class MysqlStatsd():
     """Main program class"""
-    stop_threads = False
-    threads = []
-    queue = None
-    quitting = False
-    quit = False
     opt = None
     config = None
 
@@ -35,49 +31,16 @@ class MysqlStatsd():
         # Set up queue
         self.queue = Queue.Queue()
 
-        # Register signal handler
-        signal.signal(signal.SIGINT, self.signal_handler)
-        signal.signal(signal.SIGTERM, self.signal_handler)
-
         # Spawn MySQL polling thread
-        t = ThreadMySQL(config=self.config, queue=self.queue)
-        t.start()
-        self.threads.append(t)
+        t1 = ThreadMySQL(config=self.config, queue=self.queue)
 
         # Spawn Statsd flushing thread
-        t = ThreadStatsd(config=self.config, queue=self.queue)
-        t.start()
-        self.threads.append(t)
+        t2 = ThreadStatsd(config=self.config, queue=self.queue)
 
-        while not self.quit:
-            # Do a whole lot of nothing
-            time.sleep(10)
-            print('Bleep')
+        # Get thread manager
+        tm = ThreadManager(threads=[t1, t2])
 
-        if self.quit:
-            # We got here by a quit signal, not by queue depletion
-            sys.exit(0)
-
-
-    def signal_handler(self, signal, frame):
-        """ Handle signals """
-        print("Caught CTRL+C / SIGKILL")
-        if not self.quitting:
-            self.quitting = True
-            self.stop_threads()
-            self.quit = True
-        else:
-            print("BE PATIENT!@#~!#!@#$~!`1111")
-
-    def stop_threads(self):
-        """Stops all threads and waits for them to quit"""
-        print("Stopping threads")
-        for thread in self.threads:
-            thread.stop()
-        while threading.activeCount() > 1:
-            print("Waiting for %s threads" % threading.activeCount())
-            time.sleep(1)
-        print("All threads stopped")
+        tm.run()
 
 
 if __name__ == '__main__':

@@ -4,37 +4,24 @@ import string
 import threading
 import time
 from pystatsd import statsd
+from thread_base import ThreadBase
 
 
 # stat, value, type
 # c = counter, t = timer, g = gauge
 # (stat, x, type)
-class ThreadGenerateGarbage(threading.Thread):
-    def __init__(self, queue):
-        threading.Thread.__init__(self)
-        self.queue = queue
-
+class ThreadGenerateGarbage(ThreadBase):
     def gen_key(self):
         chars = string.ascii_lowercase + string.digits
         return ''.join(random.choice(chars) for x in range(8))
 
-    def stop(self):
-        self.run = False
-
     def run(self):
         while self.run:
             time.sleep(1)
-            self.queue.put((self.gen_key(), random.randint(0,1000), 'c'))
+            self.queue.put((self.gen_key(), random.randint(0, 1000), 'c'))
 
 
-class ThreadStatsd(threading.Thread):
-    run = True
-
-    def __init__(self, queue, **kwargs):
-        threading.Thread.__init__(self)
-        self.queue = queue
-        self.configure(kwargs)
-
+class ThreadStatsd(ThreadBase):
     def configure(self, config):
         host = config.get('host', 'localhost')
         port = int(config.get('port', 8125))
@@ -54,9 +41,6 @@ class ThreadStatsd(threading.Thread):
         sender = self.get_sender(t)
         sender(k, v)
 
-    def stop(self):
-        self.run = False
-
     def run(self):
         while self.run:
             try:
@@ -69,14 +53,9 @@ class ThreadStatsd(threading.Thread):
 
 if __name__ == '__main__':
     # Run standalone to test this module, it will generate garbage
+    from thread_manager import ThreadManager
     q = Queue.Queue()
-    t1 = ThreadGenerateGarbage(q)
-    t2 = ThreadStatsd(q)
-    t1.start()
-    t2.start()
-    while True:
-        try:
-            time.sleep(1)
-        except:
-            t1.stop()
-            t2.stop()
+
+    threads = [ThreadGenerateGarbage(q), ThreadStatsd(q)]
+    tm = ThreadManager(threads=threads)
+    tm.run()
