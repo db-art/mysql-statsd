@@ -10,7 +10,7 @@ class ThreadMySQLMaxReconnectException(Exception):
 
 class ThreadMySQL(ThreadBase):
     """ Polls mysql and inserts data into queue """
-    run = True
+    is_running = True
     connection = None
     reconnect_attempt = 0
     max_reconnect = 30
@@ -34,7 +34,7 @@ class ThreadMySQL(ThreadBase):
 
     def stop(self):
         """ Stop running this thread and close connection """
-        self.run = False
+        self.is_running = False
         try:
             if self.connection:
                 self.connection.close()
@@ -71,9 +71,6 @@ class ThreadMySQL(ThreadBase):
             """ Initial connection setup """
             self.setup_connection()
 
-        while self.run:
-            if not self.connection.open:
-                self.reconnect()
-
+        while self.is_running:
             self._run()
 
