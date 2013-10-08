@@ -22,9 +22,9 @@ setup(
     version='0.1.0',
     description='Daemon that gathers statistics from MySQL and sends them to statsd.',
     long_description=readme + '\n\n' + history,
-    author='Jasper Capel',
+    author='Jasper Capel, Thijs de Zoete',
     author_email='jasper.capel@spilgames.com',
-    url='https://github.com/spil-jasper/mysql_statsd',
+    url='https://github.com/spilgames/mysql_statsd',
     packages=[
         'mysql_statsd',
     ],
