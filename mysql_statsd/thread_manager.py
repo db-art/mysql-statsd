@@ -10,14 +10,9 @@ class ThreadManager():
     quitting = False
     threads = []
 
-    def __init__(self, queue=Queue.Queue(), threads=[], config={}):
+    def __init__(self, threads=[]):
         """Program entry point"""
-
-        # Set up queue
-        self.queue = Queue.Queue()
-        self.config = config
         self.threads = threads
-
         self.register_signal_handlers()
 
     def register_signal_handlers(self):
