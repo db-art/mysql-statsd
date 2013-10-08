@@ -10,7 +10,7 @@ class ThreadMySQLMaxReconnectException(Exception):
 
 class ThreadMySQL(ThreadBase):
     """ Polls mysql and inserts data into queue """
-    run = True
+    is_running = True
     connection = None
     reconnect_attempt = 0
     max_reconnect = 30
@@ -34,7 +34,7 @@ class ThreadMySQL(ThreadBase):
 
     def stop(self):
         """ Stop running this thread and close connection """
-        self.run = False
+        self.is_running = False
         try:
             if self.connection:
                 self.connection.close()
@@ -44,9 +44,7 @@ class ThreadMySQL(ThreadBase):
 
     def _run(self):
         if not self.connection.open:
-                self.reconnect_attempt += 1
-                print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
-                self.setup_connection()
+            self.reconnect()
 
         cursor = self.connection.cursor()
         cursor.execute(self.data_query)
@@ -56,6 +54,14 @@ class ThreadMySQL(ThreadBase):
             self.queue.put((key.lower(), value, 'c'))
 
         time.sleep(self.query_interval)
+
+    def reconnect(self):
+        if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
+            raise ThreadMySQLMaxReconnectException
+
+        self.reconnect_attempt += 1
+        print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
+        self.setup_connection()
         
 
     def run(self):
@@ -65,15 +71,6 @@ class ThreadMySQL(ThreadBase):
             """ Initial connection setup """
             self.setup_connection()
 
-        while self.run:
-            if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
-                raise ThreadMySQLMaxReconnectException
-
-            if not self.connection.open:
-                self.reconnect_attempt += 1
-                print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
-                self.setup_connection()
-                continue
-
+        while self.is_running:
             self._run()
 
