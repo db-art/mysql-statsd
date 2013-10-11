@@ -20,4 +20,8 @@ Daemon that gathers statistics from MySQL and sends them to statsd.
 Features
 --------
 
-* TODO
+* Configure MySQL access
+* Run various queries to gather statistics from MySQL
+* Whitelist statistics to be sent to Statsd
+* Support for counters, gauges and timers
+

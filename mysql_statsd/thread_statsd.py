@@ -3,6 +3,8 @@ import random
 import string
 import threading
 import time
+import socket
+import distutils.util
 from pystatsd import statsd
 from thread_base import ThreadBase
 
@@ -26,6 +28,8 @@ class ThreadStatsd(ThreadBase):
         host = config.get('host', 'localhost')
         port = int(config.get('port', 8125))
         prefix = config.get('prefix', 'mysql_statsd')
+        if distutils.util.strtobool(config.get('include_hostname', 'mysql_statsd')):
+            prefix += "." + socket.gethostname().replace('.', '_')
         self.client = statsd.Client(host, port, prefix=prefix)
 
     def get_sender(self, t):
@@ -39,7 +43,7 @@ class ThreadStatsd(ThreadBase):
     def send_stat(self, item):
         (k, v, t) = item
         sender = self.get_sender(t)
-        sender(k, v)
+        sender(k, float(v))
 
     def run(self):
         while self.run:
