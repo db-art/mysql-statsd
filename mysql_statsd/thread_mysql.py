@@ -75,7 +75,7 @@ class ThreadMySQL(ThreadBase):
                     metric_key = check_type+"."+key.lower()
                     metric_type = self.metrics.get(metric_key)
                     if metric_key in self.metrics:
-                        self.queue.put(metric_key, value, metric_type)
+                        self.queue.put((metric_key, value, metric_type))
                 self.check_lastrun[check_type] = time_now
         
         #Sleep if necessary
