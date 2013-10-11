@@ -61,16 +61,24 @@ class ThreadMySQL(ThreadBase):
 
         for check_type in self.stats_checks:
             #Only run a check if we exceeded the query threshold. This is especially important for SHOW INNODB ENGINE which locks the engine for a short period of time
-            if ((time.time()*1000) - self.check_lastrun[check_type]) > float(self.stats_checks[check_type]['interval']):
+            time_now = time.time()*1000
+            check_threshold = float(self.stats_checks[check_type]['interval'])
+            check_lastrun = self.check_lastrun[check_type]
+            if (time_now - check_lastrun) > check_threshold:
                 cursor = self.connection.cursor()
                 cursor.execute(self.stats_checks[check_type]['query'])
+
                 #Pre process rows. This transforms innodb status to a row like structure
                 rows = self._preprocess(check_type, cursor.fetchall())
                 for key, value in rows:
-                    if check_type+"."+key.lower() in self.metrics:
-                        self.queue.put((check_type+"."+key.lower(), value, self.metrics.get(check_type+"."+key.lower())))
-                self.check_lastrun[check_type] = (time.time()*1000)
+                    #Only allow the whitelisted metrics to be sent off to Statsd
+                    metric_key = check_type+"."+key.lower()
+                    metric_type = self.metrics.get(metric_key)
+                    if metric_key in self.metrics:
+                        self.queue.put(metric_key, value, metric_type)
+                self.check_lastrun[check_type] = time_now
         
+        #Sleep if necessary
         time.sleep(self.sleep_interval)
         
 
