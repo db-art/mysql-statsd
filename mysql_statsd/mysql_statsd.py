@@ -23,31 +23,37 @@ class MysqlStatsd():
     def __init__(self):
         """Program entry point"""
         op = argparse.ArgumentParser()
-
         op.add_argument("-c", "--config", dest="file", default="/etc/mysql-statsd.conf", help="Configuration file")
         op.add_argument("-d", "--debug", dest="debug", help="Debug mode", default=False, action="store_true")
 
-        self.opt = op.parse_args()
-        opt = self.opt
+        # TODO switch the default to True, and make it fork by default in init script.
+        op.add_argument("-f", "--foreground", dest="foreground", help="Dont fork main program", default=False, action="store_true")
 
+        opt = op.parse_args()
         self.get_config(opt.file)
 
-        logfile = self.config.get('daemon').get('logfile','/bigdisk/logs/mysql_statsd/daemon.log')
-        self.daemonize('/dev/null', logfile, logfile)
+        logfile = self.config.get('daemon').get('logfile', '/tmp/daemon.log')
+        if not opt.foreground:
+            self.daemonize(stdin='/dev/null', stdout=logfile, stderr=logfile)
 
         # Set up queue
         self.queue = Queue.Queue()
 
-        # Spawn MySQL polling thread
+        # split off config for each thread
+        mysql_config = dict(mysql=self.config['mysql'])
+        mysql_config['metrics'] = self.config['metrics']
 
-        t1 = ThreadMySQL(queue=self.queue, **self.config)
+        statsd_config = self.config['statsd']
+
+        # Spawn MySQL polling thread
+        mysql_thread = ThreadMySQL(queue=self.queue, **mysql_config)
         # t1 = ThreadMySQL(config=self.config, queue=self.queue)
 
         # Spawn Statsd flushing thread
-        t2 = ThreadStatsd(queue=self.queue, **self.config['statsd'])
+        statsd_thread = ThreadStatsd(queue=self.queue, **statsd_config)
 
         # Get thread manager
-        tm = ThreadManager(threads=[t1, t2])
+        tm = ThreadManager(threads=[mysql_thread, statsd_thread])
         tm.run()
 
     def get_config(self, config_file):
@@ -61,8 +67,7 @@ class MysqlStatsd():
 
         return self.config
 
-
-    def daemonize (self, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    def daemonize(self, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
         '''This forks the current process into a daemon. The stdin, stdout, and
         stderr arguments are file names that will be opened and be used to replace
         the standard file descriptors in sys.stdin, sys.stdout, and sys.stderr.
@@ -76,10 +81,11 @@ class MysqlStatsd():
             if pid > 0:
                 sys.exit(0)   # Exit first parent.
         except OSError, e:
-            sys.stderr.write ("fork #1 failed: (%d) %s\n" % (e.errno, e.strerror) )
+            sys.stderr.write("fork #1 failed: (%d) %s\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         # Decouple from parent environment.
+        # TODO: do we need to change to '/' or can we chdir to wherever __file__ is?
         os.chdir("/")
         os.umask(0)
         os.setsid()
@@ -93,7 +99,7 @@ class MysqlStatsd():
                 f.close()
                 sys.exit(0)   # Exit second parent.
         except OSError, e:
-            sys.stderr.write ("fork #2 failed: (%d) %s\n" % (e.errno, e.strerror) )
+            sys.stderr.write("fork #2 failed: (%d) %s\n" % (e.errno, e.strerror))
             sys.exit(1)
 
         # Now I am a daemon!
