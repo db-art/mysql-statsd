@@ -1,7 +1,6 @@
 import Queue
 import random
 import string
-import threading
 import time
 import socket
 import distutils.util
@@ -9,10 +8,12 @@ from pystatsd import statsd
 from thread_base import ThreadBase
 
 
-# stat, value, type
-# c = counter, t = timer, g = gauge
-# (stat, x, type)
 class ThreadGenerateGarbage(ThreadBase):
+    """
+    stat, value, type
+    c = counter, t = timer, g = gauge
+    (stat, x, type)
+    """
     def gen_key(self):
         chars = string.ascii_lowercase + string.digits
         return ''.join(random.choice(chars) for x in range(8))
@@ -63,4 +64,3 @@ if __name__ == '__main__':
     threads = [ThreadGenerateGarbage(q), ThreadStatsd(q)]
     tm = ThreadManager(threads=threads)
     tm.run()
-
