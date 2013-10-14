@@ -25,6 +25,6 @@ Features
 Contributors
 --------
 
-@spil-jasper
-@thijsdezoete
-@art-spilgames
+spil-jasper
+thijsdezoete
+art-spilgames
