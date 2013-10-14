@@ -26,5 +26,7 @@ Contributors
 --------
 
 spil-jasper
+
 thijsdezoete
+
 art-spilgames
