@@ -21,3 +21,12 @@ Features
 --------
 
 * TODO
+
+Contributors
+--------
+
+spil-jasper
+
+thijsdezoete
+
+art-spilgames
