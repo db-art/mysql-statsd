@@ -36,6 +36,8 @@ class ThreadStatsd(ThreadBase):
     def get_sender(self, t):
         if t is 'g':
             return self.client.gauge
+        elif t is 'r':
+            return self.client.update_stats
         elif t is 'c':
             return self.client.incr
         elif t is 't':
