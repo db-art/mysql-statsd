@@ -41,7 +41,7 @@ class ThreadMySQL(ThreadBase):
                 }
                 self.check_lastrun[stats_type] = (time.time()*1000)
 
-        self.sleep_interval = int(config_dict.get('mysql').get('sleep_interval', 500))/1000
+        self.sleep_interval = int(config_dict.get('mysql').get('sleep_interval', 500))/1000.0
 
         #Which metrics do we allow to be sent to the backend?
         self.metrics = config_dict.get('metrics')
