@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'mysql_statsd'
-copyright = u'2013, Jasper Capel'
+copyright = u'2014, Thijs de Zoete, Jasper Capel'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -229,7 +229,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'mysql-statsd', u'mysql-statsd Documentation',
-     [u'Jasper Capel'], 1)
+     [u'Jasper Capel', u'Thijs de Zoete'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -243,7 +243,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'mysql-statsd', u'mysql-statsd Documentation',
-   u'Jasper Capel', 'mysql-statsd', 'One line description of project.',
+   u'Jasper Capel', u'Thijs de Zoete', 'mysql-statsd', 'One line description of project.',
    'Miscellaneous'),
 ]
 
