@@ -23,16 +23,24 @@ class MysqlStatsd():
     def __init__(self):
         """Program entry point"""
         op = argparse.ArgumentParser()
-        op.add_argument("-c", "--config", dest="file", default="/etc/mysql-statsd.conf", help="Configuration file")
+        op.add_argument("-c", "--config", dest="cfile", default="/etc/mysql-statsd.conf", help="Configuration file")
         op.add_argument("-d", "--debug", dest="debug", help="Debug mode", default=False, action="store_true")
 
         # TODO switch the default to True, and make it fork by default in init script.
         op.add_argument("-f", "--foreground", dest="foreground", help="Dont fork main program", default=False, action="store_true")
 
         opt = op.parse_args()
-        self.get_config(opt.file)
+        self.get_config(opt.cfile)
 
-        logfile = self.config.get('daemon').get('logfile', '/tmp/daemon.log')
+        if not self.config:
+            sys.exit(op.print_help())
+
+        try:
+            logfile = self.config.get('daemon').get('logfile', '/tmp/daemon.log')
+        except AttributeError:
+            logfile = sys.stdout
+            pass # Dont bug people with logfile errors
+
         if not opt.foreground:
             self.daemonize(stdin='/dev/null', stdout=logfile, stderr=logfile)
 
@@ -58,7 +66,13 @@ class MysqlStatsd():
 
     def get_config(self, config_file):
         cnf = ConfigParser()
-        cnf.read(config_file)[0]
+        try:
+            cnf.read(config_file)[0]
+        except IndexError:
+            # Return None so we can display help...
+            self.config = None  # Just to be safe..
+            return None
+
         self.config = {}
         for section in cnf.sections():
             self.config[section] = {}

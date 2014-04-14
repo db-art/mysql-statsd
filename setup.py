@@ -29,8 +29,15 @@ setup(
         'mysql_statsd',
     ],
     package_dir={'mysql_statsd': 'mysql_statsd'},
+    entry_points={
+        'console_scripts': [
+            'mysql_statsd = mysql_statsd:mysql_statsd.MysqlStatsd'
+        ]
+    },
     include_package_data=True,
     install_requires=[
+        'MySQL-python==1.2.5',
+        'pystatsd==0.1.10',
     ],
     license="BSD",
     zip_safe=False,
