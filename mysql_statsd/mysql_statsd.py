@@ -39,7 +39,7 @@ class MysqlStatsd():
             logfile = self.config.get('daemon').get('logfile', '/tmp/daemon.log')
         except AttributeError:
             logfile = sys.stdout
-            pass # Dont bug people with logfile errors
+            pass
 
         if not opt.foreground:
             self.daemonize(stdin='/dev/null', stdout=logfile, stderr=logfile)
