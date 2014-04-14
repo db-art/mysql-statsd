@@ -4,5 +4,4 @@
 __author__ = 'Jasper Capel'
 __email__ = 'jasper.capel@spilgames.com'
 __version__ = '0.1.1'
-__all__ = ['mysql_statsd']
 from mysql_statsd import MysqlStatsd 
