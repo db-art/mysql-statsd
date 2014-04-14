@@ -19,7 +19,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='mysql-statsd',
-    version='0.1.0',
+    version='0.1.1',
     description='Daemon that gathers statistics from MySQL and sends them to statsd.',
     long_description=readme + '\n\n' + history,
     author='Jasper Capel, Thijs de Zoete',
