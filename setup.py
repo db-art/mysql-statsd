@@ -19,7 +19,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='mysql-statsd',
-    version='0.1.0',
+    version='0.1.1',
     description='Daemon that gathers statistics from MySQL and sends them to statsd.',
     long_description=readme + '\n\n' + history,
     author='Jasper Capel, Thijs de Zoete',
@@ -29,8 +29,15 @@ setup(
         'mysql_statsd',
     ],
     package_dir={'mysql_statsd': 'mysql_statsd'},
+    entry_points={
+        'console_scripts': [
+            'mysql_statsd = mysql_statsd:mysql_statsd.MysqlStatsd'
+        ]
+    },
     include_package_data=True,
     install_requires=[
+        'MySQL-python==1.2.5',
+        'pystatsd==0.1.10',
     ],
     license="BSD",
     zip_safe=False,

@@ -4,8 +4,8 @@ language: python
 
 python:
   - "2.7"
-  - "2.6"
-  - "pypy"
+#  - "2.6" we're using argparse which isn't compatible with py2.6
+#  - "pypy" also not there for pypy apparently..
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -r requirements.txt
