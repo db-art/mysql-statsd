@@ -22,6 +22,10 @@ Features
 
 * TODO
 
+Talk about this tool:
+--------
+http://www.percona.com/live/mysql-conference-2013/sessions/mysql-performance-monitoring-using-statsd-and-graphite
+
 Contributors
 --------
 
