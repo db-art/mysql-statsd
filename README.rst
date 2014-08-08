@@ -1,15 +1,15 @@
+===============================
 mysql-statsd
-============
+===============================
 
-.. image:: https://badge.fury.io/py/mysql-statsd.png :target:
-http://badge.fury.io/py/mysql-statsd
+.. image:: https://badge.fury.io/py/mysql-statsd.png
+    :target: http://badge.fury.io/py/mysql-statsd
+    
+.. image:: https://travis-ci.org/spilgames/mysql-statsd.png?branch=master
+        :target: https://travis-ci.org/spilgames/mysql-statsd
 
-.. image::
-https://travis-ci.org/spilgames/mysql-statsd.png?branch=master :target:
-https://travis-ci.org/spilgames/mysql-statsd
-
-.. image:: https://pypip.in/d/mysql-statsd/badge.png :target:
-https://crate.io/packages/mysql-statsd?version=latest
+.. image:: https://pypip.in/d/mysql-statsd/badge.png
+        :target: https://crate.io/packages/mysql-statsd?version=latest
 
 Daemon that gathers statistics from MySQL and sends them to statsd.
 
@@ -102,8 +102,8 @@ Install the requirements(once the virtual environment is active):
 *NOTE: MySQL-Python package needs mysql\_config command to be in your
 path.*
 
-*There are future plans to replace the mysql-python package with
-`PyMySQL <https://github.com/PyMySQL/PyMySQL>`_*
+There are future plans to replace the mysql-python package with
+`PyMySQL <https://github.com/PyMySQL/PyMySQL>`_
 
 After that you're able to run the script through
 
