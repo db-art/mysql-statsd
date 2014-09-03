@@ -36,7 +36,7 @@ class ThreadStatsd(ThreadBase):
     def get_sender(self, t):
         if t is 'g':
             return self.client.gauge
-        elif t is 'r':
+        elif t in ['r', 'd']:
             return self.client.update_stats
         elif t is 'c':
             return self.client.incr
@@ -45,8 +45,23 @@ class ThreadStatsd(ThreadBase):
 
     def send_stat(self, item):
         (k, v, t) = item
-        sender = self.get_sender(t)
-        sender(k, float(v))
+        if t is 'd':
+          delta = self.get_delta(k, v)
+          if delta > 0:
+            sender = self.get_sender(t)
+            sender(k, float(delta))
+        else:
+           sender = self.get_sender(t)
+           sender(k, float(v))
+
+    def get_delta(self, k, v):
+        if k in self.data:
+           delta = float(v) - self.data[k]
+           self.data[k] = float(v)
+           return delta
+        else:
+           self.data[k] = float(v)
+           return -1
 
     def run(self):
         while self.run:

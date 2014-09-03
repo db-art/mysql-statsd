@@ -7,6 +7,7 @@ class ThreadBase(threading.Thread):
     def __init__(self, queue, **kwargs):
         threading.Thread.__init__(self)
         self.queue = queue
+        self.data = {}
         if getattr(self, 'configure', None):
             self.configure(kwargs)
 
