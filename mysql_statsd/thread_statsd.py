@@ -34,18 +34,18 @@ class ThreadStatsd(ThreadBase):
         self.client = statsd.Client(host, port, prefix=prefix)
 
     def get_sender(self, t):
-        if t is 'g':
+        if t == 'g':
             return self.client.gauge
         elif t in ['r', 'd']:
             return self.client.update_stats
-        elif t is 'c':
+        elif t == 'c':
             return self.client.incr
-        elif t is 't':
+        elif t == 't':
             return self.client.timing
 
     def send_stat(self, item):
         (k, v, t) = item
-        if t is 'd':
+        if t == 'd':
           delta = self.get_delta(k, v)
           if delta > 0:
             sender = self.get_sender(t)
