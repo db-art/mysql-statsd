@@ -33,7 +33,7 @@ class InnoDBPreprocessor(Preprocessor):
         self.txn_seen = 0
         self.prev_line = ''
 
-    def process(self, column_names, rows):
+    def process(self, rows):
         self.clear_variables()
         for row in rows:
             innoblob = row[2].replace(',', '').replace(';', '').replace('/s', '').split('\n')

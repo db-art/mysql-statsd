@@ -6,7 +6,7 @@ class ColumnsPreprocessor(Preprocessor):
     def __init__(self, *args, **kwargs):
         super(ColumnsPreprocessor, self).__init__(*args, **kwargs)
 
-    def process(self, column_names, rows):
+    def process(self, rows, column_names):
         if not rows:
             return []
         return zip(column_names, rows[0])

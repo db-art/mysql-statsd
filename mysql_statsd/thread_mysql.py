@@ -106,13 +106,16 @@ class ThreadMySQL(ThreadBase):
         Return rows when type not innodb.
         This is done to make it transparent for furture transformation types
         """
+        extra_args = ()
+
         executing_class = self.processor_class_mysql
         if check_type == 'innodb':
             executing_class = self.processor_class_inno
         if check_type == 'slave':
             executing_class = self.processor_class_columns
+            extra_args = (column_names,)
 
-        return executing_class.process(column_names, rows)
+        return executing_class.process(rows, *extra_args)
 
     def reconnect(self):
         if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
