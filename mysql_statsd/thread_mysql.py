@@ -1,4 +1,5 @@
 import time
+import re
 import MySQLdb as mdb
 from thread_base import ThreadBase
 from preprocessors import (MysqlPreprocessor, InnoDBPreprocessor)
@@ -88,12 +89,24 @@ class ThreadMySQL(ThreadBase):
                 """
                 rows = self._preprocess(check_type, cursor.fetchall())
                 for key, value in rows:
-                    metric_key = check_type+"."+key.lower()
-                    metric_type = self.metrics.get(metric_key)
+                    key = key.lower()
+                    metric_key = check_type + "." + key
 
-                    # Only allow the whitelisted metrics to be sent off to Statsd
-                    if metric_key in self.metrics:
-                        self.queue.put((metric_key, value, metric_type))
+                    # Support multiple bufferpools in metrics (or rather: ignore them)
+                    # Bascially bufferpool_* whitelists metrics for *all* bufferpools
+                    if key.startswith('bufferpool_'):
+                        # Rewrite the metric key to the whitelisted wildcard key
+                        whitelist_key = "{0}.{1}".format(check_type, re.sub(r'(.*bufferpool_)\d+(\..+)', r'\1*\2', key))
+
+                        # Only allow the whitelisted metrics to be sent off to Statsd
+                        if whitelist_key in self.metrics:
+                            metric_type = self.metrics.get(whitelist_key)
+                            self.queue.put((metric_key, value, metric_type))
+                    else:
+                        # Only allow the whitelisted metrics to be sent off to Statsd
+                        if metric_key in self.metrics:
+                            metric_type = self.metrics.get(metric_key)
+                            self.queue.put((metric_key, value, metric_type))
                 self.check_lastrun[check_type] = time_now
 
         """ Sleep if necessary """
