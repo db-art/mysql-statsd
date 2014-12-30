@@ -34,11 +34,35 @@ class InnoDBPreprocessor(Preprocessor):
         self.prev_line = ''
 
     def process(self, rows):
+        # The show engine innodb status is basically a bunch of sections, so we'll try to separate them in chunks
+        chunks = {'junk': []}
+        current_chunk = 'junk'
+        next_chunk = False
+
         self.clear_variables()
         for row in rows:
             innoblob = row[2].replace(',', '').replace(';', '').replace('/s', '').split('\n')
             for line in innoblob:
-                self.process_line(line)
+                # All chunks start with more than three dashes. Only the individual innodb bufferpools have three dashes
+                if line.startswith('----'):
+                    # First time we see more than four dashes have to record the new chunk
+                    if next_chunk == False:
+                        next_chunk = True
+                    else:
+                    # Second time we see them we just have recorded the chunk
+                        next_chunk = False
+                elif next_chunk == True: 
+                    # Record the chunkname and initialize the array
+                    current_chunk = line
+                    chunks[current_chunk] = []
+                else:
+                    # Or else we just stuff the line in the chunk
+                    chunks[current_chunk].append(line)
+        for chunk in chunks:
+            # For now let's skip individual buffer pool info not have it mess up our stats when enabled
+            if chunk != 'INDIVIDUAL BUFFER POOL INFO':
+                for line in chunks[chunk]:
+                    self.process_line(line)
 
         return self.tmp_stats.items()
 
