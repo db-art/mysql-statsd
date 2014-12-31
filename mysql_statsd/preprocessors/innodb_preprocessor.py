@@ -4,6 +4,7 @@ import re
 
 class InnoDBPreprocessor(Preprocessor):
     _INNO_LINE = re.compile(r'\s+')
+    _DIGIT_LINE = re.compile(r'\d+\.*\d*')
     tmp_stats = {}
     txn_seen = 0
     prev_line = ''
@@ -64,7 +65,92 @@ class InnoDBPreprocessor(Preprocessor):
                 for line in chunks[chunk]:
                     self.process_line(line)
 
+        # Process the individual buffer pool
+        bufferpool = 'bufferpool_0.'
+        for line in chunks['INDIVIDUAL BUFFER POOL INFO']:
+            # Buffer pool stats are preceded by:
+            # ---BUFFER POOL X
+            if line.startswith('---'):
+                innorow = self._INNO_LINE.split(line)
+                bufferpool = 'bufferpool_' + innorow[2] + '.'
+            else:
+                self.process_individual_bufferpools(line, bufferpool)
+
         return self.tmp_stats.items()
+
+    def process_individual_bufferpools(self,line,bufferpool):
+        innorow = self._INNO_LINE.split(line)
+        if line.startswith("Buffer pool size ") and not line.startswith("Buffer pool size bytes"):
+            # The " " after size is necessary to avoid matching the wrong line:
+            # Buffer pool size        1769471
+            # Buffer pool size, bytes 28991012864
+            self.tmp_stats[bufferpool + 'pool_size'] = innorow[3]
+        elif line.startswith("Buffer pool size bytes"):
+            self.tmp_stats[bufferpool + 'pool_size_bytes'] = innorow[4]
+        elif line.startswith("Free buffers"):
+            # Free buffers            0
+            self.tmp_stats[bufferpool + 'free_pages'] = innorow[2]
+        elif line.startswith("Database pages"):
+            # Database pages          1696503
+            self.tmp_stats[bufferpool + 'database_pages'] = innorow[2]
+        elif line.startswith("Old database pages"):
+            # Database pages          1696503
+            self.tmp_stats[bufferpool + 'old_database_pages'] = innorow[3]
+        elif line.startswith("Modified db pages"):
+            # Modified db pages       160602
+            self.tmp_stats[bufferpool + 'modified_pages'] = innorow[3]
+        elif line.startswith("Pending reads"):
+            # Pending reads       0
+            self.tmp_stats[bufferpool + 'pending_reads'] = innorow[2]
+        elif line.startswith("Pending writes"):
+            # Pending writes: LRU 0, flush list 0, single page 0
+            self.tmp_stats[bufferpool + 'pending_writes_lru'] = self._DIGIT_LINE.findall(innorow[3])[0]
+            self.tmp_stats[bufferpool + 'pending_writes_flush_list'] = self._DIGIT_LINE.findall(innorow[6])[0]
+            self.tmp_stats[bufferpool + 'pending_writes_single_page'] = innorow[9]
+        elif line.startswith("Pages made young"):
+            # Pages made young 290, not young 0
+            self.tmp_stats[bufferpool + 'pages_made_young'] = innorow[3]
+            self.tmp_stats[bufferpool + 'pages_not_young'] = innorow[6]
+        elif 'youngs/s' in line:
+            # 0.50 youngs/s, 0.00 non-youngs/s
+            self.tmp_stats[bufferpool + 'pages_made_young_ps'] = innorow[0]
+            self.tmp_stats[bufferpool + 'pages_not_young_ps'] = innorow[2]
+        elif line.startswith("Pages read ahead"):
+            # Pages read ahead 0.00/s, evicted without access 0.00/s, Random read ahead 0.00/s
+            self.tmp_stats[bufferpool + 'pages_read_ahead'] = self._DIGIT_LINE.findall(innorow[3])[0]
+            self.tmp_stats[bufferpool + 'pages_read_evicted'] = self._DIGIT_LINE.findall(innorow[7])[0]
+            self.tmp_stats[bufferpool + 'pages_read_random'] = self._DIGIT_LINE.findall(innorow[11])[0]
+        elif line.startswith("Pages read"):
+            # Pages read 88, created 66596, written 221669
+            self.tmp_stats[bufferpool + 'pages_read'] = innorow[2]
+            self.tmp_stats[bufferpool + 'pages_created'] = innorow[4]
+            self.tmp_stats[bufferpool + 'pages_written'] = innorow[6]
+        elif 'reads/s' in line:
+            # 0.00 reads/s, 40.76 creates/s, 137.97 writes/s
+            self.tmp_stats[bufferpool + 'pages_reads_ps'] = innorow[0]
+            self.tmp_stats[bufferpool + 'pages_created_ps'] = innorow[2]
+            self.tmp_stats[bufferpool + 'pages_written_ps'] = innorow[4]
+        elif line.startswith("Buffer pool hit rate"):
+            # Buffer pool hit rate 1000 / 1000, young-making rate 0 / 1000 not 0 / 1000
+            self.tmp_stats[bufferpool + 'buffer_pool_hit_total'] = self._DIGIT_LINE.findall(innorow[6])[0]
+            self.tmp_stats[bufferpool + 'buffer_pool_hits'] = innorow[4]
+            self.tmp_stats[bufferpool + 'buffer_pool_young'] = innorow[9]
+            self.tmp_stats[bufferpool + 'buffer_pool_not_young'] = innorow[13]
+        elif line.startswith("LRU len:"):
+            # LRU len: 21176, unzip_LRU len: 0
+            self.tmp_stats[bufferpool + 'lru_len'] = self._DIGIT_LINE.findall(innorow[2])[0]
+            self.tmp_stats[bufferpool + 'lru_unzip'] = innorow[5]
+        elif line.startswith("I/O sum"):
+            # I/O sum[29174]:cur[285], unzip sum[0]:cur[0]
+            self.tmp_stats[bufferpool + 'io_sum'] = self._DIGIT_LINE.findall(innorow[1])[0]
+            self.tmp_stats[bufferpool + 'io_sum_cur'] = self._DIGIT_LINE.findall(innorow[1])[1]
+            self.tmp_stats[bufferpool + 'io_unzip'] = self._DIGIT_LINE.findall(innorow[3])[0]
+            self.tmp_stats[bufferpool + 'io_unzip_cur'] = self._DIGIT_LINE.findall(innorow[3])[0]
+
+
+
+
+
 
     def process_line(self, line):
         innorow = self._INNO_LINE.split(line)
