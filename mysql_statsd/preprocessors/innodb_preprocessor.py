@@ -125,9 +125,9 @@ class InnoDBPreprocessor(Preprocessor):
             self.tmp_stats[bufferpool + 'pages_read'] = innorow[2]
             self.tmp_stats[bufferpool + 'pages_created'] = innorow[4]
             self.tmp_stats[bufferpool + 'pages_written'] = innorow[6]
-        elif 'reads/s' in line:
+        elif 'reads' in line and 'creates' in line:
             # 0.00 reads/s, 40.76 creates/s, 137.97 writes/s
-            self.tmp_stats[bufferpool + 'pages_reads_ps'] = innorow[0]
+            self.tmp_stats[bufferpool + 'pages_read_ps'] = innorow[0]
             self.tmp_stats[bufferpool + 'pages_created_ps'] = innorow[2]
             self.tmp_stats[bufferpool + 'pages_written_ps'] = innorow[4]
         elif line.startswith("Buffer pool hit rate"):
