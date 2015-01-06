@@ -120,11 +120,8 @@ Coding standards
 We like to stick with the python standard way of working:
 `PEP-8 <http://legacy.python.org/dev/peps/pep-0008/>`_
 
-<<<<<<< HEAD
 
 
-=======
->>>>>>> fd33c929dc3a16a4c7799078fedcb8b8d4b4dcd6
 Configuration
 =============
 
