@@ -126,6 +126,7 @@ Configuration
 =============
 
 The configuration consists out of four sections:
+
 -  daemon specific (log/pidfiles)
 -  statsd (host, port, prefixes)
 -  mysql (connecitons, queries, etc)
@@ -194,6 +195,7 @@ be omitted by InnoDB and also not parsed by the preprocessor.
 Important to know about the metrics is that you will have to specify what type 
 they are. By default Graphite stores all metric equaly but treats them 
 differently per type:
+
 -  Gauge (g for gauge)
 -  Rate (r for raw, d for delta)
 -  Timer (t for timer)
