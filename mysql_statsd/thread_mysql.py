@@ -2,7 +2,7 @@ import time
 import re
 import MySQLdb as mdb
 from thread_base import ThreadBase
-from preprocessors import (MysqlPreprocessor, InnoDBPreprocessor)
+from preprocessors import (MysqlPreprocessor, InnoDBPreprocessor, ColumnsPreprocessor)
 
 
 class ThreadMySQLMaxReconnectException(Exception):
@@ -23,6 +23,7 @@ class ThreadMySQL(ThreadBase):
         super(ThreadMySQL, self).__init__(*args, **kwargs)
         self.processor_class_mysql = MysqlPreprocessor()
         self.processor_class_inno = InnoDBPreprocessor()
+        self.processor_class_columns = ColumnsPreprocessor()
 
     def configure(self, config_dict):
         self.host = config_dict.get('mysql').get('host', 'localhost')
@@ -79,6 +80,7 @@ class ThreadMySQL(ThreadBase):
             if (time_now - check_lastrun) > check_threshold:
                 cursor = self.connection.cursor()
                 cursor.execute(self.stats_checks[check_type]['query'])
+                column_names = [i[0] for i in cursor.description]
 
                 """
                 Pre process rows
@@ -87,7 +89,7 @@ class ThreadMySQL(ThreadBase):
                 preprocessors should return list of key value tuples, e.g.:
                 [('my_key', '1'), (my_counter, '2'), ('another_metric', '666')]
                 """
-                rows = self._preprocess(check_type, cursor.fetchall())
+                rows = self._preprocess(check_type, column_names, cursor.fetchall())
                 for key, value in rows:
                     key = key.lower()
                     metric_key = check_type+"."+key
@@ -112,16 +114,21 @@ class ThreadMySQL(ThreadBase):
         """ Sleep if necessary """
         time.sleep(self.sleep_interval)
 
-    def _preprocess(self, check_type, rows):
+    def _preprocess(self, check_type, column_names, rows):
         """
         Return rows when type not innodb.
         This is done to make it transparent for furture transformation types
         """
+        extra_args = ()
+
         executing_class = self.processor_class_mysql
         if check_type == 'innodb':
             executing_class = self.processor_class_inno
+        if check_type == 'slave':
+            executing_class = self.processor_class_columns
+            extra_args = (column_names,)
 
-        return executing_class.process(rows)
+        return executing_class.process(rows, *extra_args)
 
     def reconnect(self):
         if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
