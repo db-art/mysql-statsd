@@ -92,13 +92,13 @@ class ThreadMySQL(ThreadBase):
                 rows = self._preprocess(check_type, column_names, cursor.fetchall())
                 for key, value in rows:
                     key = key.lower()
-                    metric_key = check_type+"."+key
+                    metric_key = check_type + "." + key
 
                     # Support multiple bufferpools in metrics (or rather: ignore them)
                     # Bascially bufferpool_* whitelists metrics for *all* bufferpools
                     if key.startswith('bufferpool_'):
                         # Rewrite the metric key to the whitelisted wildcard key
-                        whitelist_key = check_type+"."+re.sub(r'(.*bufferpool_)\d+(\..+)', r'\1*\2', key)
+                        whitelist_key = "{0}.{1}".format(check_type, re.sub(r'(.*bufferpool_)\d+(\..+)', r'\1*\2', key))
 
                         # Only allow the whitelisted metrics to be sent off to Statsd
                         if whitelist_key in self.metrics:

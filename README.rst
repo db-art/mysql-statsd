@@ -138,7 +138,7 @@ The daemon section allows you to set the paths to your log and pic files
 
 Statsd
 ------
-The Stasd section allows you to configure the prefix and hostname of the 
+The Statsd section allows you to configure the prefix and hostname of the 
 metrics. In our example the prefix has been set to mysql and the hostname 
 is included. This will log the status.com_select metric to:
 mysql.<hostname>.status.com_select
@@ -147,7 +147,7 @@ You can use any prefix that is necessary in your environment.
 
 MySQL
 -----
-The MySQL section allow you to configure the credentials of your mysql host
+The MySQL section allows you to configure the credentials of your mysql host
 (preferrably on localhost) and the queries + timings for the metrics.
 The queries and timings are configured through the stats_types configurable,
 so take for instance following example:
@@ -181,7 +181,7 @@ create your own custom query this way. So for example:
 
 This will query your application database every 60 seconds, fetch all the 
 metrics that have changed since then and send them through StatsD.
-Obviously you need to whitelist them via the metric section below.
+Obviously you need to whitelist them via the metrics section below.
 
 Metrics
 -------
@@ -209,7 +209,7 @@ wish to retain the absolute value of the com_select it is advised to configure
 it as a gauge. However if you are going to use it as a rate (queries per 
 second) it is no use storing it as a rate in the first place and then later 
 on calculate the integral of the gauge to get the rate. It would be far more 
-acurate to store it as a rate in the first place. 
+accurate to store it as a rate in the first place. 
 
 Keep in mind that sending the com\_select value as a raw value is in this case 
 a bad habit: StatsD will average out the collected metrics per second, so 
