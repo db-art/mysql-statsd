@@ -45,6 +45,11 @@ class ThreadStatsd(ThreadBase):
 
     def send_stat(self, item):
         (k, v, t) = item
+
+        # Don't proceed if we don't have data
+        if v == None:
+            return False
+
         if t == 'd':
           delta = self.get_delta(k, v)
           if delta > 0:

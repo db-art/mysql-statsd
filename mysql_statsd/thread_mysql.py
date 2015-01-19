@@ -51,7 +51,7 @@ class ThreadMySQL(ThreadBase):
         return self.host, self.port, self.sleep_interval
 
     def setup_connection(self):
-        self.connection = mdb.connect(host=self.host, user=self.username, passwd=self.password)
+        self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
         return self.connection
 
     def stop(self):
