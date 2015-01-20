@@ -51,22 +51,22 @@ class ThreadStatsd(ThreadBase):
             return False
 
         if t == 'd':
-          delta = self.get_delta(k, v)
-          if delta > 0:
-            sender = self.get_sender(t)
-            sender(k, float(delta))
+            delta = self.get_delta(k, v)
+            if delta > 0:
+                sender = self.get_sender(t)
+                sender(k, float(delta))
         else:
-           sender = self.get_sender(t)
-           sender(k, float(v))
+            sender = self.get_sender(t)
+            sender(k, float(v))
 
     def get_delta(self, k, v):
         if k in self.data:
-           delta = float(v) - self.data[k]
-           self.data[k] = float(v)
-           return delta
+            delta = float(v) - self.data[k]
+            self.data[k] = float(v)
+            return delta
         else:
-           self.data[k] = float(v)
-           return -1
+            self.data[k] = float(v)
+            return -1
 
     def run(self):
         while self.run:
