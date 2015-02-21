@@ -59,6 +59,7 @@ Usage
       -c FILE, --config FILE
                             Configuration file
       -d, --debug           Debug mode
+      --stdout              Print metrics on stdout instead of sending to statsd.
       -f, --foreground      Dont fork main program
 
 At the moment there is also a `deamon

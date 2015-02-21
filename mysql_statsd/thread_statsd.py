@@ -78,6 +78,12 @@ class ThreadStatsd(ThreadBase):
                 continue
 
 
+class ThreadFakeStatsd(ThreadStatsd):
+    """Prints metrics instead of sending them to statsd."""
+    def send_stat(self, item):
+        print item
+
+
 if __name__ == '__main__':
     # Run standalone to test this module, it will generate garbage
     from thread_manager import ThreadManager

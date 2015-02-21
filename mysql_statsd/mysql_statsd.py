@@ -12,7 +12,7 @@ from ConfigParser import ConfigParser
 
 from thread_manager import ThreadManager
 from thread_mysql import ThreadMySQL
-from thread_statsd import ThreadStatsd
+from thread_statsd import ThreadStatsd, ThreadFakeStatsd
 
 
 class MysqlStatsd():
@@ -25,6 +25,9 @@ class MysqlStatsd():
         op = argparse.ArgumentParser()
         op.add_argument("-c", "--config", dest="cfile", default="/etc/mysql-statsd.conf", help="Configuration file")
         op.add_argument("-d", "--debug", dest="debug", help="Debug mode", default=False, action="store_true")
+        op.add_argument("--stdout", dest="stdout_metrics",
+                help="Print metrics on stdout instead of sending to statsd.",
+                default=False, action="store_true")
 
         # TODO switch the default to True, and make it fork by default in init script.
         op.add_argument("-f", "--foreground", dest="foreground", help="Dont fork main program", default=False, action="store_true")
@@ -58,7 +61,10 @@ class MysqlStatsd():
         # t1 = ThreadMySQL(config=self.config, queue=self.queue)
 
         # Spawn Statsd flushing thread
-        statsd_thread = ThreadStatsd(queue=self.queue, **statsd_config)
+        if opt.stdout_metrics:
+            statsd_thread = ThreadFakeStatsd(queue=self.queue, **statsd_config)
+        else:
+            statsd_thread = ThreadStatsd(queue=self.queue, **statsd_config)
 
         # Get thread manager
         tm = ThreadManager(threads=[mysql_thread, statsd_thread])
