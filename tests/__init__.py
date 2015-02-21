@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import unittest, os
+import unittest
+import os
 from mysql_statsd.preprocessors import InnoDBPreprocessor
 
 class InnoDBPreprocessorTest(unittest.TestCase):
