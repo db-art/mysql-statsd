@@ -25,6 +25,8 @@ class ThreadGenerateGarbage(ThreadBase):
 
 
 class ThreadStatsd(ThreadBase):
+    debug = False
+
     def configure(self, config):
         host = config.get('host', 'localhost')
         port = int(config.get('port', 8125))
@@ -73,6 +75,8 @@ class ThreadStatsd(ThreadBase):
             try:
                 # Timeout after 1 second so we can respond to quit events
                 item = self.queue.get(True, 1)
+                if self.debug:
+                    print(item)
                 self.send_stat(item)
             except Queue.Empty:
                 continue
