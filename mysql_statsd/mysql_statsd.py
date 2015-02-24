@@ -23,10 +23,19 @@ class MysqlStatsd():
     def __init__(self):
         """Program entry point"""
         op = argparse.ArgumentParser()
-        op.add_argument("-c", "--config", dest="cfile", default="/etc/mysql-statsd.conf", help="Configuration file")
-        op.add_argument("-d", "--debug", dest="debug", 
-                help="Prints statsd metrics next to sending them", 
-                default=False, action="store_true")
+        op.add_argument("-c", "--config", dest="cfile",
+                default="/etc/mysql-statsd.conf",
+                help="Configuration file"
+        )
+        op.add_argument("-d", "--debug", dest="debug",
+                help="Prints statsd metrics next to sending them",
+                default=False, action="store_true"
+        )
+        op.add_argument("--dry-run", dest="dry_run",
+                default=False,
+                action="store_true",
+                help="Print the output that would be sent to statsd without actually sending data somewhere"
+        )
 
         # TODO switch the default to True, and make it fork by default in init script.
         op.add_argument("-f", "--foreground", dest="foreground", help="Dont fork main program", default=False, action="store_true")
@@ -61,6 +70,10 @@ class MysqlStatsd():
 
         # Spawn Statsd flushing thread
         statsd_thread = ThreadStatsd(queue=self.queue, **statsd_config)
+
+        if opt.dry_run:
+            statsd_thread = ThreadFakeStatsd(queue=self.queue, **statsd_config)
+
         if opt.debug:
             """ All debug settings go here """
             statsd_thread.debug = True
