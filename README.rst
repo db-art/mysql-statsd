@@ -58,8 +58,9 @@ Usage
       -h, --help            show this help message and exit
       -c FILE, --config FILE
                             Configuration file
-      -d, --debug           Debug mode
-      --stdout              Print metrics on stdout instead of sending to statsd.
+      -d, --debug           Prints statsd metrics next to sending them
+      --dry-run             Print the output that would be sent to statsd without
+                            actually sending data somewhere
       -f, --foreground      Dont fork main program
 
 At the moment there is also a `deamon
