@@ -67,7 +67,7 @@ class InnoDBPreprocessor(Preprocessor):
 
         # Process the individual buffer pool
         bufferpool = 'bufferpool_0.'
-        for line in chunks['INDIVIDUAL BUFFER POOL INFO']:
+        for line in chunks.get('INDIVIDUAL BUFFER POOL INFO', []):
             # Buffer pool stats are preceded by:
             # ---BUFFER POOL X
             if line.startswith('---'):
