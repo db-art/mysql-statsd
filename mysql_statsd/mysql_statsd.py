@@ -58,7 +58,7 @@ class MysqlStatsd():
         # Spawn MySQL polling thread
         mysql_thread = ThreadMySQL(queue=self.queue, **mysql_config)
         # t1 = ThreadMySQL(config=self.config, queue=self.queue)
-        
+
         # Spawn Statsd flushing thread
         statsd_thread = ThreadStatsd(queue=self.queue, **statsd_config)
         if opt.debug:
