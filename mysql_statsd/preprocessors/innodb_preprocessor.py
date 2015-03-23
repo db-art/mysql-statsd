@@ -204,7 +204,7 @@ class InnoDBPreprocessor(Preprocessor):
             # Purge done for trx's n:o < 861B135D undo n:o < 0
             if innorow[7] == 'undo':
                 innorow[7] = 0
-            self.tmp_stats['unpurged_txns'] = self.tmp_stats['innodb_transactions'] - self.make_bigint(innorow[6], innorow[7])
+            self.tmp_stats['unpurged_txns'] = int(self.tmp_stats['innodb_transactions']) - self.make_bigint(innorow[6], innorow[7])
 
         elif line.startswith('History list length'):
             # History list length 132
