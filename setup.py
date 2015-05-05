@@ -24,7 +24,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author='Jasper Capel, Thijs de Zoete',
     author_email='jasper.capel@spilgames.com',
-    url='https://github.com/spilgames/mysql_statsd',
+    url='https://github.com/spilgames/mysql-statsd',
     packages=[
         'mysql_statsd',
     ],
