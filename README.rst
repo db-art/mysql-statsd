@@ -1,20 +1,21 @@
 ===============================
+
+Deprication
+===========
+This project is no longer supported by Spil Games and has been adopted by `DB-Art <https://github.com/db-art/>`_.
+
+The new repository can be found here:
+`MySQL-StatsD @ DB-Art <https://github.com/db-art/mysql-statsd>`_
+
+
 mysql-statsd
 ===============================
-
-.. image:: https://badge.fury.io/py/mysql-statsd.png
-    :target: http://badge.fury.io/py/mysql-statsd
-    
-.. image:: https://travis-ci.org/spilgames/mysql-statsd.png?branch=master
-        :target: https://travis-ci.org/spilgames/mysql-statsd
-
-.. image:: https://pypip.in/d/mysql-statsd/badge.png
-        :target: https://crate.io/packages/mysql-statsd?version=latest
 
 Daemon that gathers statistics from MySQL and sends them to statsd.
 
 -  Free software: BSD license
 -  Documentation: http://mysql-statsd.rtfd.org.
+
 
 Usage / Installation
 ====================
