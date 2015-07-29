@@ -2,10 +2,10 @@
 
 Deprication
 ===========
-This project is no longer supported by Spil Games and has been adopted by [DB-Art]: (https://github.com/db-art/).
+This project is no longer supported by Spil Games and has been adopted by `DB-Art <https://github.com/db-art/>`.
 
 The new repository can be found here:
-[MySQL-StatsD @ DB-Art]: (https://github.com/db-art/mysql-statsd)
+`MySQL-StatsD @ DB-Art <https://github.com/db-art/mysql-statsd>`
 
 
 mysql-statsd
