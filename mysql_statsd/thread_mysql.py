@@ -1,6 +1,7 @@
 import time
 import re
 import MySQLdb as mdb
+import traceback
 from thread_base import ThreadBase
 from preprocessors import (MysqlPreprocessor, InnoDBPreprocessor, ColumnsPreprocessor)
 
@@ -14,8 +15,11 @@ class ThreadMySQL(ThreadBase):
     is_running = True
     connection = None
     reconnect_attempt = 0
+    recovery_attempt = 0
     max_reconnect = 30
-    die_on_max_reconnect = False
+    max_recovery = 10
+    die_on_max_reconnect = True
+    die_on_max_recovery = True
     stats_checks = {}
     check_lastrun = {}
 
@@ -65,9 +69,6 @@ class ThreadMySQL(ThreadBase):
             pass
 
     def _run(self):
-        if not self.connection.open:
-            self.reconnect()
-
         for check_type in self.stats_checks:
             """
             Only run a check if we exceeded the query threshold.
@@ -111,9 +112,6 @@ class ThreadMySQL(ThreadBase):
                             self.queue.put((metric_key, value, metric_type))
                 self.check_lastrun[check_type] = time_now
 
-        """ Sleep if necessary """
-        time.sleep(self.sleep_interval)
-
     def _preprocess(self, check_type, column_names, rows):
         """
         Return rows when type not innodb.
@@ -138,12 +136,36 @@ class ThreadMySQL(ThreadBase):
         print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
         self.setup_connection()
 
+    def recover_errors(self, ex):
+        """Decide whether we should continue."""
+        if self.die_on_max_recovery and self.recovery_attempt >= self.max_recovery:
+            print("Giving up after {} consecutive errors".format(self.recovery_attempt))
+            raise
+
+        self.recovery_attempt += 1
+        print("Ignoring database error:")
+        traceback.print_exc()
+
+        # Server gone away requires we reset the connection.
+        if ex.args[0] == 2006:
+            self.connection.close()
+
     def run(self):
         """ Run forever """
-
         if not self.connection:
             """ Initial connection setup """
             self.setup_connection()
 
         while self.is_running:
-            self._run()
+            if self.connection.open:
+                self.reconnect_attempt = 0
+            else:
+                self.reconnect()
+
+            try:
+                self._run()
+                self.recovery_attempt = 0
+            except mdb.DatabaseError as ex:
+                self.recover_errors(ex)
+
+            time.sleep(self.sleep_interval)

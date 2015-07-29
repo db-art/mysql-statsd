@@ -80,7 +80,18 @@ class MysqlStatsd():
 
         # Get thread manager
         tm = ThreadManager(threads=[mysql_thread, statsd_thread])
-        tm.run()
+
+        try:
+            tm.run()
+        except:
+            # Protects somewhat from needing to kill -9 if there is an exception
+            # within the thread manager by asking for a quit an joining.
+            try:
+                tm.stop_threads()
+            except:
+                pass
+
+            raise
 
     def get_config(self, config_file):
         cnf = ConfigParser()

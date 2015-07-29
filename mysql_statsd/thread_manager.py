@@ -21,10 +21,16 @@ class ThreadManager():
         signal.signal(signal.SIGTERM, self.signal_handler)
 
     def run(self):
-        # Main loop
+        """Main loop."""
         self.start_threads()
         while not self.quit:
             time.sleep(1)
+
+            dead = [thread for thread in self.threads if not thread.is_alive()]
+            if dead and not self.quitting:
+                print("Thread {0!r} has stopped unexpectedly.".format(thread))
+                self.stop_threads()
+                return
 
     def start_threads(self):
         for t in self.threads:
