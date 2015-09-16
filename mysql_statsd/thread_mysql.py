@@ -32,6 +32,7 @@ class ThreadMySQL(ThreadBase):
     def configure(self, config_dict):
         self.host = config_dict.get('mysql').get('host', 'localhost')
         self.port = config_dict.get('mysql').get('port', 3306)
+        self.socket = config_dict.get('mysql').get('socket', '/var/run/mysqld/mysqld.sock')
 
         self.username = config_dict.get('mysql').get('username', 'root')
         self.password = config_dict.get('mysql').get('password', '')
@@ -55,7 +56,7 @@ class ThreadMySQL(ThreadBase):
         return self.host, self.port, self.sleep_interval
 
     def setup_connection(self):
-        self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
+        self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password, unix_socket=self.socket)
         return self.connection
 
     def stop(self):
