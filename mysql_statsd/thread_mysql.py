@@ -16,6 +16,7 @@ class ThreadMySQL(ThreadBase):
     connection = None
     reconnect_attempt = 0
     recovery_attempt = 0
+    reconnect_delay = 5
     max_reconnect = 30
     max_recovery = 10
     die_on_max_reconnect = True
@@ -137,6 +138,7 @@ class ThreadMySQL(ThreadBase):
 
         self.reconnect_attempt += 1
         print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
+        time.sleep(self.reconnect_delay)
         self.setup_connection()
 
     def recover_errors(self, ex):
