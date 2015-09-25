@@ -16,6 +16,7 @@ class ThreadMySQL(ThreadBase):
     connection = None
     reconnect_attempt = 0
     recovery_attempt = 0
+    reconnect_delay = 5
     max_reconnect = 30
     max_recovery = 10
     die_on_max_reconnect = True
@@ -55,8 +56,11 @@ class ThreadMySQL(ThreadBase):
         return self.host, self.port, self.sleep_interval
 
     def setup_connection(self):
-        self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
-        return self.connection
+        try:
+            self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
+            return self.connection
+        except Exception:
+            self.reconnect()
 
     def stop(self):
         """ Stop running this thread and close connection """
@@ -134,6 +138,7 @@ class ThreadMySQL(ThreadBase):
 
         self.reconnect_attempt += 1
         print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
+        time.sleep(self.reconnect_delay)
         self.setup_connection()
 
     def recover_errors(self, ex):
