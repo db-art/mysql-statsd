@@ -17,10 +17,6 @@ class ThreadMySQL(ThreadBase):
     reconnect_attempt = 0
     recovery_attempt = 0
     reconnect_delay = 5
-    max_reconnect = 30
-    max_recovery = 10
-    die_on_max_reconnect = True
-    die_on_max_recovery = True
     stats_checks = {}
     check_lastrun = {}
 
@@ -37,6 +33,9 @@ class ThreadMySQL(ThreadBase):
         self.username = config_dict.get('mysql').get('username', 'root')
         self.password = config_dict.get('mysql').get('password', '')
 
+        self.max_reconnect = int(config_dict.get('mysql').get('max_reconnect', 30))
+        self.max_recovery = int(config_dict.get('mysql').get('max_recovery', 10))
+        
         #Set the stats checks for MySQL
         for stats_type in config_dict.get('mysql').get('stats_types').split(','):
             if config_dict.get('mysql').get('query_'+stats_type) and \
@@ -133,7 +132,7 @@ class ThreadMySQL(ThreadBase):
         return executing_class.process(rows, *extra_args)
 
     def reconnect(self):
-        if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
+        if self.max_reconnect > 0 and self.reconnect_attempt >= self.max_reconnect:
             raise ThreadMySQLMaxReconnectException
 
         self.reconnect_attempt += 1
@@ -143,7 +142,7 @@ class ThreadMySQL(ThreadBase):
 
     def recover_errors(self, ex):
         """Decide whether we should continue."""
-        if self.die_on_max_recovery and self.recovery_attempt >= self.max_recovery:
+        if self.max_recovery > 0 and self.recovery_attempt >= self.max_recovery:
             print("Giving up after {} consecutive errors".format(self.recovery_attempt))
             raise
 
