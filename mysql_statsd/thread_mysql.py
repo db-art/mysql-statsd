@@ -14,7 +14,6 @@ class ThreadMySQL(ThreadBase):
     """ Polls mysql and inserts data into queue """
     is_running = True
     connection = None
-    reconnect_attempt = 0
     recovery_attempt = 0
     reconnect_delay = 5
     stats_checks = {}
@@ -55,11 +54,23 @@ class ThreadMySQL(ThreadBase):
         return self.host, self.port, self.sleep_interval
 
     def setup_connection(self):
-        try:
+        connection_attempt = 0
+
+        while self.max_reconnect == 0 or connection_attempt <= self.max_reconnect:
+          try:
             self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
             return self.connection
-        except Exception:
-            self.reconnect()
+          except Exception:
+            pass
+
+          # If we got here, connection failed
+          connection_attempt += 1
+          time.sleep(self.reconnect_delay)
+          print('Attempting reconnect #{0}...'.format(connection_attempt))
+        
+        # If we get out of the while loop, we've passed max_reconnect
+        raise ThreadMySQLMaxReconnectException
+
 
     def stop(self):
         """ Stop running this thread and close connection """
@@ -131,15 +142,6 @@ class ThreadMySQL(ThreadBase):
 
         return executing_class.process(rows, *extra_args)
 
-    def reconnect(self):
-        if self.max_reconnect > 0 and self.reconnect_attempt >= self.max_reconnect:
-            raise ThreadMySQLMaxReconnectException
-
-        self.reconnect_attempt += 1
-        print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
-        time.sleep(self.reconnect_delay)
-        self.setup_connection()
-
     def recover_errors(self, ex):
         """Decide whether we should continue."""
         if self.max_recovery > 0 and self.recovery_attempt >= self.max_recovery:
@@ -161,10 +163,8 @@ class ThreadMySQL(ThreadBase):
             self.setup_connection()
 
         while self.is_running:
-            if self.connection.open:
-                self.reconnect_attempt = 0
-            else:
-                self.reconnect()
+            if not self.connection.open:
+                self.setup_connection()
 
             try:
                 self._run()
