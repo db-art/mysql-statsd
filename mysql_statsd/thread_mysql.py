@@ -28,11 +28,12 @@ class ThreadMySQL(ThreadBase):
     def configure(self, config_dict):
         self.host = config_dict.get('mysql').get('host', 'localhost')
         self.port = config_dict.get('mysql').get('port', 3306)
+        self.socket = config_dict.get('mysql').get('socket', None)
 
         self.username = config_dict.get('mysql').get('username', 'root')
         self.password = config_dict.get('mysql').get('password', '')
 
-        self.max_reconnect = int(config_dict.get('mysql').get('max_reconnect', 30))
+        self.max_reconnect = int(config_dict.get('mysql').get('max_reconnect', 5))
         self.max_recovery = int(config_dict.get('mysql').get('max_recovery', 10))
         
         #Set the stats checks for MySQL
@@ -56,17 +57,21 @@ class ThreadMySQL(ThreadBase):
     def setup_connection(self):
         connection_attempt = 0
 
-        while self.max_reconnect == 0 or connection_attempt <= self.max_reconnect:
-          try:
-            self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
-            return self.connection
-          except Exception:
-            pass
+        while self.max_reconnect == 0 or connection_attempt < self.max_reconnect:
+            try:
+                if self.socket:
+                    self.connection = mdb.connect(user=self.username, unix_socket=self.socket, passwd=self.password)
+                else:
+                    self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
 
-          # If we got here, connection failed
-          connection_attempt += 1
-          time.sleep(self.reconnect_delay)
-          print('Attempting reconnect #{0}...'.format(connection_attempt))
+                return self.connection
+            except Exception:
+                pass
+
+            # If we got here, connection failed
+            connection_attempt += 1
+            print('Attempting reconnect #{0}...'.format(connection_attempt))
+            time.sleep(self.reconnect_delay)
         
         # If we get out of the while loop, we've passed max_reconnect
         raise ThreadMySQLMaxReconnectException
