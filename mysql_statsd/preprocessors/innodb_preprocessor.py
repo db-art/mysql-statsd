@@ -39,19 +39,23 @@ class InnoDBPreprocessor(Preprocessor):
         chunks = {'junk': []}
         current_chunk = 'junk'
         next_chunk = False
+        oldest_view = False
 
         self.clear_variables()
         for row in rows:
             innoblob = row[2].replace(',', '').replace(';', '').replace('/s', '').split('\n')
             for line in innoblob:
                 # All chunks start with more than three dashes. Only the individual innodb bufferpools have three dashes
+                if line.startswith('---OLDEST VIEW---'):
+                    oldest_view = True
                 if line.startswith('----'):
                     # First time we see more than four dashes have to record the new chunk
-                    if next_chunk == False:
+                    if next_chunk == False and oldest_view == False::
                         next_chunk = True
                     else:
                     # Second time we see them we just have recorded the chunk
                         next_chunk = False
+                        oldest_view = False
                 elif next_chunk == True: 
                     # Record the chunkname and initialize the array
                     current_chunk = line
