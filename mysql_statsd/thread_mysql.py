@@ -14,13 +14,8 @@ class ThreadMySQL(ThreadBase):
     """ Polls mysql and inserts data into queue """
     is_running = True
     connection = None
-    reconnect_attempt = 0
     recovery_attempt = 0
     reconnect_delay = 5
-    max_reconnect = 30
-    max_recovery = 10
-    die_on_max_reconnect = True
-    die_on_max_recovery = True
     stats_checks = {}
     check_lastrun = {}
 
@@ -37,6 +32,9 @@ class ThreadMySQL(ThreadBase):
         self.username = config_dict.get('mysql').get('username', 'root')
         self.password = config_dict.get('mysql').get('password', '')
 
+        self.max_reconnect = int(config_dict.get('mysql').get('max_reconnect', 30))
+        self.max_recovery = int(config_dict.get('mysql').get('max_recovery', 10))
+        
         #Set the stats checks for MySQL
         for stats_type in config_dict.get('mysql').get('stats_types').split(','):
             if config_dict.get('mysql').get('query_'+stats_type) and \
@@ -56,11 +54,23 @@ class ThreadMySQL(ThreadBase):
         return self.host, self.port, self.sleep_interval
 
     def setup_connection(self):
-        try:
+        connection_attempt = 0
+
+        while self.max_reconnect == 0 or connection_attempt <= self.max_reconnect:
+          try:
             self.connection = mdb.connect(host=self.host, user=self.username, port=self.port, passwd=self.password)
             return self.connection
-        except Exception:
-            self.reconnect()
+          except Exception:
+            pass
+
+          # If we got here, connection failed
+          connection_attempt += 1
+          time.sleep(self.reconnect_delay)
+          print('Attempting reconnect #{0}...'.format(connection_attempt))
+        
+        # If we get out of the while loop, we've passed max_reconnect
+        raise ThreadMySQLMaxReconnectException
+
 
     def stop(self):
         """ Stop running this thread and close connection """
@@ -132,18 +142,9 @@ class ThreadMySQL(ThreadBase):
 
         return executing_class.process(rows, *extra_args)
 
-    def reconnect(self):
-        if self.die_on_max_reconnect and self.reconnect_attempt >= self.max_reconnect:
-            raise ThreadMySQLMaxReconnectException
-
-        self.reconnect_attempt += 1
-        print('Attempting reconnect #{0}...'.format(self.reconnect_attempt))
-        time.sleep(self.reconnect_delay)
-        self.setup_connection()
-
     def recover_errors(self, ex):
         """Decide whether we should continue."""
-        if self.die_on_max_recovery and self.recovery_attempt >= self.max_recovery:
+        if self.max_recovery > 0 and self.recovery_attempt >= self.max_recovery:
             print("Giving up after {} consecutive errors".format(self.recovery_attempt))
             raise
 
@@ -162,10 +163,8 @@ class ThreadMySQL(ThreadBase):
             self.setup_connection()
 
         while self.is_running:
-            if self.connection.open:
-                self.reconnect_attempt = 0
-            else:
-                self.reconnect()
+            if not self.connection.open:
+                self.setup_connection()
 
             try:
                 self._run()
