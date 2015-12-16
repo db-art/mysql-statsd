@@ -3,6 +3,13 @@
 History
 -------
 
+0.1.5 (2013-08-30)
+++++++++++++++++++
+
+* Support socket config
+* Add innodb preprocessor update
+
+
 0.1.1 (2013-08-30)
 ++++++++++++++++++
 
