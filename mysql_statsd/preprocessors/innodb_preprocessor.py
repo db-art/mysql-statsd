@@ -50,7 +50,7 @@ class InnoDBPreprocessor(Preprocessor):
                     oldest_view = True
                 if line.startswith('----'):
                     # First time we see more than four dashes have to record the new chunk
-                    if next_chunk == False and oldest_view == False::
+                    if next_chunk == False and oldest_view == False:
                         next_chunk = True
                     else:
                     # Second time we see them we just have recorded the chunk
