@@ -27,7 +27,7 @@ class InnoDBPreprocessor(Preprocessor):
             if lo is None:
                 lo = 0
 
-        return (hi * 4294967296) + lo
+        return (int(hi) * 4294967296) + int(lo)
 
     def clear_variables(self):
         self.tmp_stats = {}
