@@ -5,6 +5,6 @@ Pygments==1.6
 Sphinx==1.2b1
 argparse==1.2.1
 docutils==0.11
-py==1.4.15
+py==1.10.0
 pystatsd==0.1.10
 tox==1.6.0
